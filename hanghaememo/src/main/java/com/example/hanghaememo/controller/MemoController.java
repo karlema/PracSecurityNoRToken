@@ -2,11 +2,13 @@ package com.example.hanghaememo.controller;
 
 import com.example.hanghaememo.dto.MemoRequestDto;
 import com.example.hanghaememo.dto.RegisterRequestDto;
+import com.example.hanghaememo.security.UserDetailsImpl;
 import com.example.hanghaememo.service.MemoService;
 import com.example.hanghaememo.entity.Memo;
 
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -16,6 +18,7 @@ import java.util.List;
 @RestController
 //@NoArgsConstructor
 @RequiredArgsConstructor
+@RequestMapping("/api/memo/")
 public class MemoController {
 
     private final MemoService memoService;
@@ -25,23 +28,23 @@ public class MemoController {
         return new ModelAndView("index");
     }
 
-    @PostMapping("/api/memos")
-    public Memo createMemo(HttpServletRequest request,@RequestBody MemoRequestDto requestDto)
+    @PostMapping("memos")
+    public Memo createMemo(@RequestBody MemoRequestDto requestDto, @AuthenticationPrincipal UserDetailsImpl userDetails)
     {
-        return memoService.createMemo(request,requestDto);
+        return memoService.createMemo(requestDto,userDetails.getUser());
     }
 
-    @GetMapping("/api/memos")
+    @GetMapping("memos")
     public List<Memo> getMemos()
     {
         return memoService.getMemos();
     }
-    @PutMapping("/api/memos/{id}")
+    @PutMapping("memos/{id}")
     public Long updateMemo(HttpServletRequest request, @PathVariable Long id,@RequestBody MemoRequestDto requestDto) {
         return memoService.update(request,id,requestDto);
     }
 
-    @DeleteMapping("/api/memos/{id}")
+    @DeleteMapping("memos/{id}")
     public Long deleteMemo(HttpServletRequest request, @PathVariable Long id,@RequestBody MemoRequestDto requestDto) {
         return memoService.deleteMemo(request,id,requestDto);
     }

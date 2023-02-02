@@ -11,9 +11,10 @@ import javax.servlet.http.HttpServletResponse;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/auth/")
 public class UserController {
     private final UserService userService;
-    @PostMapping("/api/auth/signup")
+    @PostMapping("signup")
     // @RequestBody 가뭘까
 
     public String registerUser(@RequestBody RegisterRequestDto registerRequestDto)
@@ -28,7 +29,7 @@ public class UserController {
             return "회원가입이 완료되었습니다.";
     }
     @ResponseBody
-    @PostMapping("/api/auth/login")
+    @PostMapping("login")
     public String loginUser(@RequestBody LoginRequestDto loginRequestDto,HttpServletResponse response)
     {
         userService.login(loginRequestDto,response);

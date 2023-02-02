@@ -4,6 +4,7 @@ import com.example.hanghaememo.dto.RegisterRequestDto;
 import com.example.hanghaememo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.hanghaememo.entity.User;
@@ -22,13 +23,14 @@ public class UserService {
     private final JwtUtil jwtUtil;
     private static final String ADMIN_TOKEN = "AAABnvxRVklrnYxKZ0aHgTBcXukeZygoC";
 
-
+    private final PasswordEncoder passwordEncoder;
     @Transactional
     public User regster(RegisterRequestDto registerRequestDto)
     {
         String userName = registerRequestDto.getUserName();
-        String userPwd = registerRequestDto.getPwd();
+        String userPwd = passwordEncoder.encode(registerRequestDto.getPwd());
         // 사용자 ROLE 확인
+
         UserRoleEnum role = UserRoleEnum.USER;
         if (registerRequestDto.isAdmin()) {
             if (!registerRequestDto.getAdminToken().equals(ADMIN_TOKEN)) {
@@ -48,6 +50,7 @@ public class UserService {
     public boolean checkRegister(RegisterRequestDto registerRequestDto)
     {
         String userName = registerRequestDto.getUserName();
+
         Optional<User> found = userRepository.findByUsername(userName);
         if (found.isPresent()) {
             System.out.println("중복된 사용자가 존재합니다.");
@@ -66,13 +69,15 @@ public class UserService {
         return false;
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public void login(LoginRequestDto loginRequestDto, HttpServletResponse response)
     {
-        User loginUser = userRepository.findByUsername(loginRequestDto.getUserName()).orElseThrow(() -> new IllegalArgumentException("등록된 사용자가 없습니다."));
+        String username = loginRequestDto.getUserName();
+        String password = loginRequestDto.getPwd();
+        User loginUser = userRepository.findByUsername(username).orElseThrow(() -> new IllegalArgumentException("등록된 사용자가 없습니다."));
         if(isValidUser(loginUser))
         {
-            if(loginUser.getPwd().equals(loginRequestDto.getPwd()))
+            if(passwordEncoder.matches(password, loginUser.getPwd()))
             {
                 System.out.println("로그인 성공");
                 response.addHeader(JwtUtil.AUTHORIZATION_HEADER, jwtUtil.createToken(loginUser.getUsername(), loginUser.getRole()));

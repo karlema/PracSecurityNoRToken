@@ -7,6 +7,7 @@ import com.example.hanghaememo.entity.Memo;
 import com.example.hanghaememo.entity.User;
 import com.example.hanghaememo.repository.MemoRepository;
 import com.example.hanghaememo.repository.UserRepository;
+import com.example.hanghaememo.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -49,27 +50,12 @@ public class MemoService {
     }
 
     @Transactional
-    public Memo createMemo(HttpServletRequest request, MemoRequestDto requestDto) {
-        String token = jwtUtil.resolveToken(request);
-        if (token != null) {
-            if (jwtUtil.validateToken(token)) {
-                Claims claims = jwtUtil.getUserInfoFromToken(token);
-                if (claims == null) {
-                    throw new IllegalArgumentException("Token Error");
-                }
+    public Memo createMemo(MemoRequestDto requestDto, User user)
+    {
 
-                // 토큰에서 가져온 사용자 정보를 사용하여 DB 조회
-
-                User user = userRepository.findByUsername(claims.getSubject()).orElseThrow(
-                        () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
-                );
-
-                Memo memo = new Memo(requestDto, user);
-                memoRepository.save(memo);
-                return memo;
-            }
-        }
-        return null;
+        Memo memo = new Memo(requestDto, user);
+        memoRepository.save(memo);
+        return memo;
     }
 
     @Transactional(readOnly = true)
